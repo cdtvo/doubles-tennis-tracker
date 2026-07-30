@@ -1292,19 +1292,29 @@ export default function TennisDoublesTracker() {
                     {state.matchTB ? "Match tiebreak · first to 10" : "Tiebreak · first to 7"}
                   </div>
                 )}
-                <div className={`tdt-info-row-${serverTeam.toLowerCase()} rounded-lg px-3 py-1.5 mb-1.5 text-left`}>
-                  <span className="tdt-muted text-xs">Serving</span>{" "}
-                  <span className={`tdt-display text-sm font-semibold tdt-team-${serverTeam.toLowerCase()}`}>
-                    {nameOf(state, server)}
+                <div className={`tdt-info-row-${serverTeam.toLowerCase()} rounded-lg px-3 py-2 mb-1.5 flex items-center gap-1.5`}>
+                  <span className="w-3 flex-shrink-0 flex justify-center">
+                    <CircleDot size={10} className="tdt-dot" />
                   </span>
-                  {state.serveStage === "second" && <span className="tdt-muted text-xs"> · 2nd serve</span>}
+                  <div className="min-w-0">
+                    <div className="tdt-muted text-xs uppercase tracking-wide">Serving</div>
+                    <div className={`tdt-display text-sm font-semibold truncate tdt-team-${serverTeam.toLowerCase()}`}>
+                      {nameOf(state, server)}
+                      {state.serveStage === "second" && (
+                        <span className="tdt-muted text-xs font-normal"> · 2nd serve</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className={`tdt-info-row-${receiverTeam.toLowerCase()} rounded-lg px-3 py-1.5 text-left`}>
-                  <span className="tdt-muted text-xs">Returning</span>{" "}
-                  <span className={`tdt-display text-sm font-semibold tdt-team-${receiverTeam.toLowerCase()}`}>
-                    {nameOf(state, receiver)}
-                  </span>
-                  <span className="tdt-muted text-xs"> ({currentSide} court)</span>
+                <div className={`tdt-info-row-${receiverTeam.toLowerCase()} rounded-lg px-3 py-2 flex items-center gap-1.5`}>
+                  <span className="w-3 flex-shrink-0"></span>
+                  <div className="min-w-0">
+                    <div className="tdt-muted text-xs uppercase tracking-wide">Returning</div>
+                    <div className={`tdt-display text-sm font-semibold truncate tdt-team-${receiverTeam.toLowerCase()}`}>
+                      {nameOf(state, receiver)}
+                      <span className="tdt-muted text-xs font-normal"> · {currentSide} court</span>
+                    </div>
+                  </div>
                 </div>
                 <div className="tdt-muted text-xs mt-1.5 text-center">tap a player name above to change the server</div>
               </div>
