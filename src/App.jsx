@@ -56,6 +56,9 @@ function emptyStats() {
       backhand: emptyShotStats(),
       volley: emptyShotStats(),
       overhead: emptyShotStats(),
+      forehandLob: emptyShotStats(),
+      backhandLob: emptyShotStats(),
+      dropShot: emptyShotStats(),
     },
   };
 }
@@ -409,6 +412,11 @@ function reducer(state, action) {
     case "TOGGLE_SHOT_TRACKING": {
       return { ...state, trackShotType: !state.trackShotType };
     }
+    case "SET_THIRD_SET_MODE": {
+      if (state.sets.length >= 2) return state;
+      const s = pushHistory(state);
+      return { ...s, thirdSetMode: action.payload.mode };
+    }
     case "SET_RETURN_SIDE": {
       const { team, deucePlayer } = action.payload;
       if (state.winner) return state;
@@ -528,6 +536,28 @@ export default function TennisDoublesTracker() {
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const [storageReady, setStorageReady] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
+
+  // SPA routing: reflect the current screen in the URL hash (#/setup, #/match)
+  // and let browser back/forward move between them.
+  useEffect(() => {
+    const desired = state.screen === "match" ? "#/match" : "#/setup";
+    if (window.location.hash !== desired) {
+      window.history.pushState(null, "", desired);
+    }
+  }, [state.screen]);
+
+  useEffect(() => {
+    function onPopState() {
+      const hash = window.location.hash;
+      if (hash === "#/setup" && state.screen === "match" && state.winner) {
+        dispatch({ type: "RESET" });
+      } else if (hash !== (state.screen === "match" ? "#/match" : "#/setup")) {
+        window.history.replaceState(null, "", state.screen === "match" ? "#/match" : "#/setup");
+      }
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [state.screen, state.winner]);
 
   useEffect(() => {
     function onBeforeInstallPrompt(e) {
@@ -1054,7 +1084,7 @@ export default function TennisDoublesTracker() {
       lines.push("");
       lines.push("-- Shot Breakdown --");
       PLAYERS.forEach((p) => {
-        const shots = ["forehand", "backhand", "volley", "overhead"]
+        const shots = ["forehand", "backhand", "volley", "overhead", "forehandLob", "backhandLob", "dropShot"]
           .map((shot) => {
             const sh = state.stats[p].shots[shot];
             if (!sh.winners && !sh.unforced && !sh.forced) return null;
@@ -1123,6 +1153,9 @@ export default function TennisDoublesTracker() {
     { key: "backhand", label: "Backhand" },
     { key: "volley", label: "Volley" },
     { key: "overhead", label: "Overhead" },
+    { key: "forehandLob", label: "Forehand Lob" },
+    { key: "backhandLob", label: "Backhand Lob" },
+    { key: "dropShot", label: "Drop Shot" },
   ];
 
   function handleOutcomeTap(kind, player) {
@@ -1564,7 +1597,7 @@ export default function TennisDoublesTracker() {
             <div className="mt-5 space-y-4">
               <div className="tdt-display text-xs font-semibold">Shot Breakdown</div>
               {PLAYERS.map((p) => {
-                const rows = ["forehand", "backhand", "volley", "overhead"].filter((shot) => {
+                const rows = SHOT_TYPES.map((s) => s.key).filter((shot) => {
                   const sh = state.stats[p].shots[shot];
                   return sh.winners || sh.unforced || sh.forced;
                 });
@@ -1584,9 +1617,10 @@ export default function TennisDoublesTracker() {
                       <tbody>
                         {rows.map((shot) => {
                           const sh = state.stats[p].shots[shot];
+                          const shotLabel = SHOT_TYPES.find((s) => s.key === shot)?.label || shot;
                           return (
                             <tr key={shot} className="border-t" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-                              <td className="py-1.5 pr-2 tdt-muted capitalize">{shot}</td>
+                              <td className="py-1.5 pr-2 tdt-muted">{shotLabel}</td>
                               <td className="py-1.5 px-2 text-center">{sh.winners}</td>
                               <td className="py-1.5 px-2 text-center">{sh.unforced}</td>
                               <td className="py-1.5 pl-2 text-center">{sh.forced}</td>
@@ -1599,7 +1633,7 @@ export default function TennisDoublesTracker() {
                 );
               })}
               {PLAYERS.every((p) =>
-                ["forehand", "backhand", "volley", "overhead"].every((shot) => {
+                SHOT_TYPES.map((s) => s.key).every((shot) => {
                   const sh = state.stats[p].shots[shot];
                   return !sh.winners && !sh.unforced && !sh.forced;
                 })
@@ -1639,6 +1673,35 @@ export default function TennisDoublesTracker() {
                     );
                   })}
                 </div>
+              </div>
+
+              <div>
+                <div className="text-xs uppercase tracking-wide tdt-muted mb-2">3rd set format</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    className={`tdt-btn rounded-lg px-3 py-2 text-sm disabled:opacity-30 disabled:pointer-events-none ${
+                      state.thirdSetMode === "full" ? "tdt-btn-ball" : "tdt-btn-outline"
+                    }`}
+                    onClick={() => dispatch({ type: "SET_THIRD_SET_MODE", payload: { mode: "full" } })}
+                    disabled={state.sets.length >= 2}
+                  >
+                    Full Set
+                  </button>
+                  <button
+                    className={`tdt-btn rounded-lg px-3 py-2 text-sm disabled:opacity-30 disabled:pointer-events-none ${
+                      state.thirdSetMode === "tb10" ? "tdt-btn-ball" : "tdt-btn-outline"
+                    }`}
+                    onClick={() => dispatch({ type: "SET_THIRD_SET_MODE", payload: { mode: "tb10" } })}
+                    disabled={state.sets.length >= 2}
+                  >
+                    10-Point Tiebreak
+                  </button>
+                </div>
+                <p className="tdt-muted text-xs mt-2">
+                  {state.sets.length >= 2
+                    ? "The deciding set has already started, so this can't change now."
+                    : "Applies if the match reaches a 3rd set."}
+                </p>
               </div>
 
               <div>
