@@ -1,4 +1,4 @@
-const CACHE_NAME = "tennis-tracker-v6";
+const CACHE_NAME = "tennis-tracker-v8";
 
 // Paths are relative to this file's own location, so this works whether
 // the site is served from a domain root or a GitHub Pages subpath.

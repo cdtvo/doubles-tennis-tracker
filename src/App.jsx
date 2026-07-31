@@ -1181,7 +1181,7 @@ export default function TennisDoublesTracker() {
       {fontImport}
       <div className="max-w-lg mx-auto space-y-4">
         {/* Broadcast-style scoreboard */}
-        <div className="tdt-panel rounded-2xl overflow-hidden">
+        <div className="tdt-panel rounded-2xl overflow-hidden sticky top-0 z-20 shadow-lg">
           <table className="w-full border-collapse">
             <thead>
               <tr className="tdt-sb-head">
@@ -1404,69 +1404,66 @@ export default function TennisDoublesTracker() {
             </div>
 
             {/* ace + outcome grid */}
-            <div className="space-y-3">
-              <button
-                className="tdt-btn tdt-btn-green rounded-lg px-4 py-2.5 w-full text-sm disabled:opacity-30 disabled:pointer-events-none"
-                onClick={() => dispatch({ type: "ACE" })}
-                disabled={outcomeDisabled}
-              >
-                Ace
-              </button>
-              <div className={`grid grid-cols-2 gap-3 ${outcomeDisabled ? "opacity-40" : ""}`}>
-                {["A", "B"].map((team) => (
-                  <div key={team} className={`rounded-xl p-3 tdt-panel2 border-t-2 tdt-border-${team.toLowerCase()}`}>
-                    <div className={`text-xs font-semibold mb-2 tdt-team-${team.toLowerCase()}`}>{state.teamNames[team]}</div>
-                    {PLAYERS.filter((p) => TEAM_OF[p] === team).map((p) => (
-                      <div key={p} className="mb-2 last:mb-0">
-                        <div className="text-xs tdt-muted mb-1 truncate">{nameOf(state, p)}</div>
-                        <div className="flex gap-1">
-                          <button
-                            className="tdt-btn tdt-btn-green rounded px-1.5 py-1.5 flex-1 text-xs disabled:pointer-events-none"
-                            onClick={() => handleOutcomeTap("winner", p)}
-                            disabled={outcomeDisabled}
-                          >
-                            Winner
-                          </button>
-                          <button
-                            className="tdt-btn tdt-btn-coral rounded px-1.5 py-1.5 flex-1 text-xs disabled:pointer-events-none"
-                            onClick={() => handleOutcomeTap("unforced", p)}
-                            disabled={outcomeDisabled}
-                          >
-                            UE
-                          </button>
-                          <button
-                            className="tdt-btn tdt-btn-amber rounded px-1.5 py-1.5 flex-1 text-xs disabled:pointer-events-none"
-                            onClick={() => handleOutcomeTap("forced", p)}
-                            disabled={outcomeDisabled}
-                          >
-                            FE
-                          </button>
+            {!pendingOutcome && (
+              <div className="space-y-3">
+                <button
+                  className="tdt-btn tdt-btn-green rounded-lg px-4 py-2.5 w-full text-sm disabled:opacity-30 disabled:pointer-events-none"
+                  onClick={() => dispatch({ type: "ACE" })}
+                  disabled={outcomeDisabled}
+                >
+                  Ace
+                </button>
+                <div className={`grid grid-cols-2 gap-3 ${outcomeDisabled ? "opacity-40" : ""}`}>
+                  {["A", "B"].map((team) => (
+                    <div key={team} className={`rounded-xl p-3 tdt-panel2 border-t-2 tdt-border-${team.toLowerCase()}`}>
+                      <div className={`text-xs font-semibold mb-2 tdt-team-${team.toLowerCase()}`}>{state.teamNames[team]}</div>
+                      {PLAYERS.filter((p) => TEAM_OF[p] === team).map((p) => (
+                        <div key={p} className="mb-2 last:mb-0">
+                          <div className="text-xs tdt-muted mb-1 truncate">{nameOf(state, p)}</div>
+                          <div className="flex gap-1">
+                            <button
+                              className="tdt-btn tdt-btn-green rounded px-1.5 py-1.5 flex-1 text-xs disabled:pointer-events-none"
+                              onClick={() => handleOutcomeTap("winner", p)}
+                              disabled={outcomeDisabled}
+                            >
+                              Winner
+                            </button>
+                            <button
+                              className="tdt-btn tdt-btn-coral rounded px-1.5 py-1.5 flex-1 text-xs disabled:pointer-events-none"
+                              onClick={() => handleOutcomeTap("unforced", p)}
+                              disabled={outcomeDisabled}
+                            >
+                              UE
+                            </button>
+                            <button
+                              className="tdt-btn tdt-btn-amber rounded px-1.5 py-1.5 flex-1 text-xs disabled:pointer-events-none"
+                              onClick={() => handleOutcomeTap("forced", p)}
+                              disabled={outcomeDisabled}
+                            >
+                              FE
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* shot type */}
-            {state.trackShotType && (
+            {state.trackShotType && pendingOutcome && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-xs min-w-0">
-                    {pendingOutcome ? (
-                      <span className="truncate block">
-                        <span className="tdt-display font-semibold">{kindLabel[pendingOutcome.kind]}</span>
-                        <span className="tdt-muted"> — {nameOf(state, pendingOutcome.player)} · pick the shot</span>
-                      </span>
-                    ) : (
-                      <span className="tdt-muted">Pick a winner/error above to log the shot type</span>
-                    )}
+                    <span className="truncate block">
+                      <span className="tdt-display font-semibold">{kindLabel[pendingOutcome.kind]}</span>
+                      <span className="tdt-muted"> — {nameOf(state, pendingOutcome.player)} · pick the shot</span>
+                    </span>
                   </div>
                   <button
-                    className="tdt-btn tdt-btn-outline rounded-lg px-2 py-1 text-xs flex-shrink-0 disabled:opacity-30 disabled:pointer-events-none"
+                    className="tdt-btn tdt-btn-outline rounded-lg px-2 py-1 text-xs flex-shrink-0"
                     onClick={() => setPendingOutcome(null)}
-                    disabled={!pendingOutcome}
                   >
                     Back
                   </button>
@@ -1475,9 +1472,8 @@ export default function TennisDoublesTracker() {
                   {SHOT_TYPES.map((shot) => (
                     <button
                       key={shot.key}
-                      className={`tdt-btn ${pendingOutcome ? kindClass[pendingOutcome.kind] : "tdt-btn-outline"} rounded-lg px-4 py-3 text-sm disabled:opacity-30 disabled:pointer-events-none`}
+                      className={`tdt-btn ${kindClass[pendingOutcome.kind]} rounded-lg px-4 py-3 text-sm`}
                       onClick={() => handleShotTypeTap(shot.key)}
-                      disabled={!pendingOutcome}
                     >
                       {shot.label}
                     </button>
