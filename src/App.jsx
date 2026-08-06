@@ -1174,7 +1174,6 @@ export default function TennisDoublesTracker() {
 
   const kindLabel = { winner: "Winner", unforced: "Unforced Error", forced: "Forced Error" };
   const kindClass = { winner: "tdt-btn-green", unforced: "tdt-btn-coral", forced: "tdt-btn-amber" };
-  const outcomeDisabled = state.serveStage !== "outcome" || !!pendingOutcome;
 
   return (
     <div className="tdt-root min-h-screen w-full p-3 sm:p-5">
@@ -1368,52 +1367,51 @@ export default function TennisDoublesTracker() {
         {!state.winner && !state.awaitingThirdSetFormat && (
           <div className="tdt-panel rounded-2xl p-4 space-y-4">
             {/* first serve */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                className="tdt-btn tdt-btn-ball rounded-xl px-4 py-3 text-sm disabled:opacity-30 disabled:pointer-events-none"
-                onClick={() => dispatch({ type: "FIRST_IN" })}
-                disabled={state.serveStage !== "first"}
-              >
-                1st Serve In
-              </button>
-              <button
-                className="tdt-btn tdt-btn-outline rounded-xl px-4 py-3 text-sm disabled:opacity-30 disabled:pointer-events-none"
-                onClick={() => dispatch({ type: "FIRST_FAULT" })}
-                disabled={state.serveStage !== "first"}
-              >
-                1st Serve Fault
-              </button>
-            </div>
+            {state.serveStage === "first" && (
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  className="tdt-btn tdt-btn-ball rounded-xl px-4 py-3 text-sm"
+                  onClick={() => dispatch({ type: "FIRST_IN" })}
+                >
+                  1st Serve In
+                </button>
+                <button
+                  className="tdt-btn tdt-btn-outline rounded-xl px-4 py-3 text-sm"
+                  onClick={() => dispatch({ type: "FIRST_FAULT" })}
+                >
+                  1st Serve Fault
+                </button>
+              </div>
+            )}
 
             {/* second serve */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                className="tdt-btn tdt-btn-ball rounded-xl px-4 py-3 text-sm disabled:opacity-30 disabled:pointer-events-none"
-                onClick={() => dispatch({ type: "SECOND_IN" })}
-                disabled={state.serveStage !== "second"}
-              >
-                2nd Serve In
-              </button>
-              <button
-                className="tdt-btn tdt-btn-coral rounded-xl px-4 py-3 text-sm disabled:opacity-30 disabled:pointer-events-none"
-                onClick={() => dispatch({ type: "DOUBLE_FAULT" })}
-                disabled={state.serveStage !== "second"}
-              >
-                Double Fault
-              </button>
-            </div>
+            {state.serveStage === "second" && (
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  className="tdt-btn tdt-btn-ball rounded-xl px-4 py-3 text-sm"
+                  onClick={() => dispatch({ type: "SECOND_IN" })}
+                >
+                  2nd Serve In
+                </button>
+                <button
+                  className="tdt-btn tdt-btn-coral rounded-xl px-4 py-3 text-sm"
+                  onClick={() => dispatch({ type: "DOUBLE_FAULT" })}
+                >
+                  Double Fault
+                </button>
+              </div>
+            )}
 
             {/* ace + outcome grid */}
-            {!pendingOutcome && (
+            {state.serveStage === "outcome" && !pendingOutcome && (
               <div className="space-y-3">
                 <button
-                  className="tdt-btn tdt-btn-green rounded-lg px-4 py-2.5 w-full text-sm disabled:opacity-30 disabled:pointer-events-none"
+                  className="tdt-btn tdt-btn-green rounded-lg px-4 py-2.5 w-full text-sm"
                   onClick={() => dispatch({ type: "ACE" })}
-                  disabled={outcomeDisabled}
                 >
                   Ace
                 </button>
-                <div className={`grid grid-cols-2 gap-3 ${outcomeDisabled ? "opacity-40" : ""}`}>
+                <div className="grid grid-cols-2 gap-3">
                   {["A", "B"].map((team) => (
                     <div key={team} className={`rounded-xl p-3 tdt-panel2 border-t-2 tdt-border-${team.toLowerCase()}`}>
                       <div className={`text-xs font-semibold mb-2 tdt-team-${team.toLowerCase()}`}>{state.teamNames[team]}</div>
@@ -1422,23 +1420,20 @@ export default function TennisDoublesTracker() {
                           <div className="text-xs tdt-muted mb-1 truncate">{nameOf(state, p)}</div>
                           <div className="flex gap-1">
                             <button
-                              className="tdt-btn tdt-btn-green rounded px-1.5 py-1.5 flex-1 text-xs disabled:pointer-events-none"
+                              className="tdt-btn tdt-btn-green rounded px-1.5 py-1.5 flex-1 text-xs"
                               onClick={() => handleOutcomeTap("winner", p)}
-                              disabled={outcomeDisabled}
                             >
                               Winner
                             </button>
                             <button
-                              className="tdt-btn tdt-btn-coral rounded px-1.5 py-1.5 flex-1 text-xs disabled:pointer-events-none"
+                              className="tdt-btn tdt-btn-coral rounded px-1.5 py-1.5 flex-1 text-xs"
                               onClick={() => handleOutcomeTap("unforced", p)}
-                              disabled={outcomeDisabled}
                             >
                               UE
                             </button>
                             <button
-                              className="tdt-btn tdt-btn-amber rounded px-1.5 py-1.5 flex-1 text-xs disabled:pointer-events-none"
+                              className="tdt-btn tdt-btn-amber rounded px-1.5 py-1.5 flex-1 text-xs"
                               onClick={() => handleOutcomeTap("forced", p)}
-                              disabled={outcomeDisabled}
                             >
                               FE
                             </button>
